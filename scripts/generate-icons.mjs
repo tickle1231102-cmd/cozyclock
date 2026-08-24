@@ -6,6 +6,10 @@ import { fileURLToPath } from 'node:url'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const outDir = join(__dirname, '../public/icons')
 const androidRes = join(__dirname, '../android/app/src/main/res')
+const iosAppIconDir = join(
+  __dirname,
+  '../ios/App/App/Assets.xcassets/AppIcon.appiconset',
+)
 mkdirSync(outDir, { recursive: true })
 
 function crc32(buf) {
@@ -141,13 +145,28 @@ function adaptiveForeground(x, y, size) {
   return [0, 0, 0, 0]
 }
 
-for (const size of [180, 192, 512]) {
+for (const size of [180, 192, 512, 1024]) {
   const name =
-    size === 180 ? 'apple-touch-icon.png' : `icon-${size}.png`
+    size === 180
+      ? 'apple-touch-icon.png'
+      : size === 1024
+        ? 'icon-1024.png'
+        : `icon-${size}.png`
   writeFileSync(join(outDir, name), png(size, clockIcon))
 }
 
 console.log('Icons written to', outDir)
+
+try {
+  mkdirSync(iosAppIconDir, { recursive: true })
+  writeFileSync(
+    join(iosAppIconDir, 'AppIcon-512@2x.png'),
+    png(1024, clockIcon),
+  )
+  console.log('iOS AppIcon updated under', iosAppIconDir)
+} catch (err) {
+  console.warn('Skipped iOS AppIcon (ios/ missing?):', err.message)
+}
 
 /** dens: folder → [legacy launcher px, adaptive foreground px] */
 const ANDROID_DENSITIES = {

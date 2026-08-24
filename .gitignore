@@ -18,3 +18,11 @@ android/app/release/
 *.keystore
 *.apk
 *.aab
+
+# iOS / Xcode local
+ios/App/Pods/
+ios/DerivedData/
+ios/**/xcuserdata/
+*.ipa
+*.dSYM.zip
+*.mobileprovision
