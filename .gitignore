@@ -26,3 +26,5 @@ ios/**/xcuserdata/
 *.ipa
 *.dSYM.zip
 *.mobileprovision
+
+.omc/
