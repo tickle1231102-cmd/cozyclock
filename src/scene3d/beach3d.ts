@@ -9,6 +9,7 @@ export type Beach3D = {
   setActive(active: boolean): void
 }
 
+const X_AXIS = new THREE.Vector3(1, 0, 0)
 const MODEL_URL = `${import.meta.env.BASE_URL}beach3d/beach.glb`
 
 export function supportsWebGL(): boolean {
@@ -53,7 +54,10 @@ export function mountBeach3D(container: HTMLElement, onReady?: () => void): Beac
   new GLTFLoader().load(MODEL_URL, (gltf) => {
     gltf.scene.traverse((o) => {
       if ((o as THREE.Light).isLight) o.visible = false
-      if ((o as THREE.PerspectiveCamera).isPerspectiveCamera) camera = o as THREE.PerspectiveCamera
+      if ((o as THREE.PerspectiveCamera).isPerspectiveCamera) {
+        camera = o as THREE.PerspectiveCamera
+        baseQuat = null
+      }
       const mesh = o as THREE.Mesh
       if (!mesh.isMesh) return
       mesh.castShadow = mesh.receiveShadow = true
@@ -68,20 +72,27 @@ export function mountBeach3D(container: HTMLElement, onReady?: () => void): Beac
       }
     })
     scene.add(gltf.scene)
-    resize()
     applyTime(hour, 0)
+    resize()
     onReady?.()
   })
 
+  let baseQuat: THREE.Quaternion | null = null
   function resize() {
     const w = container.clientWidth || window.innerWidth
     const h = container.clientHeight || window.innerHeight
     renderer.setSize(w, h, false)
     camera.aspect = w / h
-    // keep the portrait framing on wide screens
-    camera.fov = camera.aspect > 9 / 16 ? 70 : (70 * (9 / 16)) / camera.aspect
+    // Tilt up slightly on tall screens so the horizon sits near the middle.
+    const tall = Math.min(1, Math.max(0, (9 / 16 - camera.aspect) / (9 / 16 - 0.4)))
+    // on tall phones, crop the sides a little instead of revealing more foreground sand
+    camera.fov = camera.aspect > 9 / 16 ? 70 : 70 / Math.pow(camera.aspect / (9 / 16), 0.45)
+    baseQuat ??= camera.quaternion.clone()
+    camera.quaternion.copy(baseQuat).multiply(new THREE.Quaternion().setFromAxisAngle(X_AXIS, THREE.MathUtils.degToRad(10 * tall)))
     camera.far = 1000
     camera.updateProjectionMatrix()
+    // draw a still frame even while the animation loop is paused
+    renderer.render(scene, camera)
   }
   new ResizeObserver(resize).observe(container)
 

@@ -137,6 +137,50 @@ for i in range(8):
 bpy.ops.mesh.primitive_cube_add(size=1, location=(2.6,4.4,0.12)); t=bpy.context.object
 t.scale=(0.9,1.7,0.02); t.rotation_euler=(0,0,0.25); obj(t, mat("towel","#f0a860"))
 
+
+# Foreground: striped beach towel and shells on the near sand (fills the lower screen)
+def sand_z(x, y):
+    ly = y - 6
+    return 0.25*math.sin(x*0.35) + 0.18*math.cos(ly*0.5 + x*0.2) - max(0, ly-2)*0.12
+
+def towel(cx, cy, rot, w=1.1, l=2.0, colors=("#f6efe2", "#3fa7c4", "#f6efe2", "#f08a5d", "#f6efe2", "#3fa7c4", "#f6efe2")):
+    n = len(colors); ca, sa = math.cos(rot), math.sin(rot)
+    for i, col in enumerate(colors):
+        # one stripe across the towel's width, slightly rumpled to sit on the sand
+        y0 = -l/2 + i*l/n; verts = []; faces = []
+        NX, NY = 6, 3
+        for a in range(NY+1):
+            for b in range(NX+1):
+                lx = -w/2 + w*b/NX; ly = y0 + (l/n)*a/NY
+                x = cx + lx*ca - ly*sa; y = cy + lx*sa + ly*ca
+                verts.append((x, y, sand_z(x, y) + 0.06 + 0.008*math.sin(lx*7 + ly*5)))
+        for a in range(NY):
+            for b in range(NX):
+                k = a*(NX+1) + b
+                faces.append((k, k+1, k+NX+2, k+NX+1))
+        mesh_obj("Towel_%d" % i, verts, faces, (0, 0, 0), mat("towel%d" % i, col, 0.95))
+
+def scallop(cx, cy, r, rot, col):
+    # fan of ridged ribs, cupped upward
+    verts = [(0, 0, 0.02)]; faces = []; N = 14
+    for i in range(N+1):
+        a = math.pi*(0.08 + 0.84*i/N); rr = r*(1.0 if i % 2 else 0.93)
+        verts.append((math.cos(a)*rr, math.sin(a)*rr, 0.05*r + (0.03*r if i % 2 else 0)))
+    for i in range(N): faces.append((0, i+1, i+2))
+    o = mesh_obj("Shell", verts, faces, (cx, cy, sand_z(cx, cy) + 0.01), mat("shell_" + col, col, 0.5))
+    o.rotation_euler = (0, 0, rot)
+
+def spiral(cx, cy, r, rot, col):
+    bpy.ops.mesh.primitive_cone_add(vertices=10, radius1=r, depth=r*2.6, location=(cx, cy, sand_z(cx, cy) + r*0.6))
+    o = bpy.context.object; o.rotation_euler = (math.radians(80), 0, rot); obj(o, mat("spiral_" + col, col, 0.45), True)
+
+towel(0.95, 0.55, math.radians(-24), w=0.75, l=1.25)
+for x, y, r, rot, col in [(-0.7, 0.35, 0.2, 0.4, "#f7d9c4"), (-0.25, 0.75, 0.14, -0.8, "#fff3e6"),
+                          (-1.05, 1.0, 0.16, 2.2, "#f2b8a0"), (0.2, 0.15, 0.12, 1.1, "#fff3e6"),
+                          (1.5, 1.3, 0.14, -0.3, "#f7d9c4")]:
+    scallop(x, y, r, rot, col)
+spiral(-0.45, 0.1, 0.08, 1.2, "#e8c8a8"); spiral(-0.85, 0.7, 0.07, -0.6, "#d8b090")
+
 # Rocks, shells, beach ball
 for i in range(6):
     bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=1, radius=random.uniform(0.2,0.6),
