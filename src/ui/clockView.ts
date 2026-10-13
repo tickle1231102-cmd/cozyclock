@@ -466,7 +466,28 @@ export function createClockView(root: HTMLElement) {
     tideWindowEl.hidden = !isTide
     islandWindowEl.hidden = !isIsland
     beachWindowEl.hidden = !isBeach
+    syncBeach3D(isBeach ? theme.beach!.hour : null)
     nookWindowEl.hidden = !isNook
+  }
+
+  // The beach theme draws an animated 3D scene over its 2D layers once WebGL is up.
+  let beach3d: import('../scene3d/beach3d').Beach3D | null = null
+  let beach3dLoading = false
+  let beachHour: number | null = null
+  function syncBeach3D(hour: number | null) {
+    beachHour = hour
+    if (beach3d) {
+      if (hour != null) beach3d.setHour(hour)
+      beach3d.setActive(hour != null)
+      return
+    }
+    if (hour == null || beach3dLoading) return
+    beach3dLoading = true
+    void import('../scene3d/beach3d').then(({ mountBeach3D, supportsWebGL }) => {
+      if (!supportsWebGL()) return
+      beach3d = mountBeach3D(beachWindowEl, () => beachWindowEl.classList.add('is-3d'))
+      syncBeach3D(beachHour)
+    })
   }
 
   function placeDigitalInStage() {

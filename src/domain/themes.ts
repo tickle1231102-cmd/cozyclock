@@ -136,17 +136,6 @@ export const THEME_PRESETS: ThemeTokens[] = [
       'linear-gradient(175deg, #58c8e8 0%, #30a8b0 42%, #e8d0a0 88%)',
   },
   {
-    id: BEACH_THEME_ID,
-    name: 'Beach',
-    bg: '#50c8d8',
-    fg: '#f7fcfd',
-    accent: '#f0b45a',
-    fontFamily: 'system',
-    dynamic: true,
-    swatch:
-      'linear-gradient(175deg, #5ab8e8 0%, #50c8d8 38%, #f2d7a4 88%)',
-  },
-  {
     id: NOOK_THEME_ID,
     name: 'Nook',
     bg: '#e8dcc8',
@@ -167,6 +156,17 @@ export const THEME_PRESETS: ThemeTokens[] = [
     dynamic: true,
     swatch:
       'linear-gradient(160deg, #3b8fd0 0%, #f0a060 48%, #10182c 100%)',
+  },
+  {
+    id: BEACH_THEME_ID,
+    name: 'Beach',
+    bg: '#50c8d8',
+    fg: '#f7fcfd',
+    accent: '#f0b45a',
+    fontFamily: 'system',
+    dynamic: true,
+    swatch:
+      'linear-gradient(175deg, #5ab8e8 0%, #50c8d8 38%, #f2d7a4 88%)',
   },
 ]
 

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Beach 3D Preview</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #9cc4dc; overflow: hidden; }
+  #stage { position: fixed; inset: 0; }
+  #ui { position: fixed; top: 12px; left: 12px; right: 12px; z-index: 1; display: flex; flex-direction: column; gap: 8px; font: 500 13px system-ui, sans-serif; }
+  #phases { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+  #phases button { border: 0; border-radius: 999px; padding: 6px 11px; font: inherit; color: #fff; background: #0003; backdrop-filter: blur(8px); cursor: pointer; }
+  #phases button.on { background: #fffd; color: #234; }
+  #hour { width: 100%; accent-color: #fff; }
+  #clock { position: fixed; left: 0; right: 0; bottom: 18%; text-align: center; font: 600 18vmin/1 system-ui, sans-serif; color: #fffaf0; text-shadow: 0 2px 12px #0003; pointer-events: none; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="ui"><div id="phases"></div><input id="hour" type="range" min="0" max="23.99" step="0.05" value="12" aria-label="시간" /></div>
+<div id="clock"></div>
+<script type="module">
+import { mountBeach3D } from '../src/scene3d/beach3d.ts'
+import { PHASES } from '../src/scene3d/beachTime.ts'
+
+const beach = mountBeach3D(document.getElementById('stage'))
+beach.setActive(true)
+const bar = document.getElementById('phases'), slider = document.getElementById('hour'), clockEl = document.getElementById('clock')
+let fixed = null
+function select(id, hour) {
+  fixed = hour
+  for (const b of bar.querySelectorAll('button')) b.classList.toggle('on', b.dataset.id === id)
+  if (hour != null) slider.value = hour
+}
+for (const p of [{ id: 'live', label: '실시간', hour: null }, ...PHASES]) {
+  const b = document.createElement('button')
+  b.textContent = p.label; b.dataset.id = p.id; b.onclick = () => select(p.id, p.hour)
+  bar.append(b)
+}
+slider.oninput = () => select('custom', Number(slider.value))
+const q = new URLSearchParams(location.search).get('t')
+const preset = PHASES.find((p) => p.id === q)
+preset ? select(preset.id, preset.hour) : q && !isNaN(q) ? select('custom', Number(q)) : select('live', null)
+setInterval(function tick() {
+  const d = new Date()
+  const h = fixed ?? d.getHours() + d.getMinutes() / 60
+  beach.setHour(h)
+  const hh = Math.floor(h), mm = Math.floor((h - hh) * 60)
+  clockEl.textContent = `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`
+  return tick
+}(), 100)
+</script>
+</body>
+</html>

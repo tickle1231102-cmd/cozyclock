@@ -20,6 +20,8 @@ export type BeachSceneState = {
   waveOpacity: number
   glowOpacity: number
   starsOpacity: number
+  /** Hour of day (0–24) this scene was sampled at, for the 3D background. */
+  hour: number
   fg: string
   accent: string
 }
@@ -292,7 +294,7 @@ function sampleBeach(hour: number): Omit<BeachKeyframe, 'hour'> {
 
 export function getBeachSceneState(date: Date = new Date()): BeachSceneState {
   const hour = dayHour(date)
-  return { ...sampleBeach(hour), starsOpacity: scenicNightStarsOpacity(hour) }
+  return { ...sampleBeach(hour), starsOpacity: scenicNightStarsOpacity(hour), hour }
 }
 
 export function beachFlatBg(scene: BeachSceneState): string {
